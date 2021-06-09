@@ -1,4 +1,6 @@
 const { validationResult } = require("express-validator");
+const { validationFormatter } = require("../helpers/errors");
+
 const { sendResponse } = require("../helpers/response");
 
 const validate = (req, res, next) => {
@@ -7,7 +9,11 @@ const validate = (req, res, next) => {
     return next();
   }
 
-  return sendResponse(res, false, 422, "Validation error", errors.array());
+  const extractedErrors = errors
+    .array()
+    .map((err) => validationFormatter(err.param, err.msg));
+
+  return sendResponse(res, false, 422, "Validation error", extractedErrors);
 };
 
 module.exports = validate;

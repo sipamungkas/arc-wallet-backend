@@ -1,11 +1,30 @@
-const { check } = require("express-validator");
+const { body } = require("express-validator");
 
 exports.loginRules = () => [
-  check("email")
+  body("email")
     .notEmpty()
     .withMessage("Email can not be empty")
     .bail()
     .isEmail()
-    .withMessage("Invalid email format"),
-  check("password").isLength({ min: 8 }).withMessage("Password length min 8"),
+    .withMessage("Invalid email address"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Minimum password length is 8"),
+];
+
+exports.registerRules = () => [
+  body("email")
+    .notEmpty()
+    .withMessage("Email can not be empty")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email address")
+    .bail(),
+  body("username")
+    .isLength({ min: 3 })
+    .withMessage("Minimum username length is is 3"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Minimum password length is 8"),
+  body("pin").isLength({ max: 6, min: 6 }).withMessage("Invalid Pin"),
 ];

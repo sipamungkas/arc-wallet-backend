@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const { RedisError } = require("redis");
 
-const sendResponse = (res, success, status, message, data) => {
+exports.sendResponse = (res, success, status, message, data) => {
   const response = {
     success,
     message,
@@ -12,7 +12,15 @@ const sendResponse = (res, success, status, message, data) => {
   res.status(status).json(response);
 };
 
-const sendResponseWithPagination = (
+exports.sendValidationError = (res, data) => {
+  res.status(422).json({
+    success: false,
+    message: "Validation error",
+    data,
+  });
+};
+
+exports.sendResponseWithPagination = (
   res,
   success,
   status,
@@ -30,7 +38,7 @@ const sendResponseWithPagination = (
   res.status(status).json(response);
 };
 
-const sendError = (res, status, error) => {
+exports.sendError = (res, status, error) => {
   let statusCode = null;
   let errorMessage = error?.code || error;
 
@@ -62,5 +70,3 @@ const sendError = (res, status, error) => {
 
   res.status(statusCode || status).json(response);
 };
-
-module.exports = { sendResponse, sendError, sendResponseWithPagination };

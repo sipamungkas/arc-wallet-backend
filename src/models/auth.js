@@ -48,3 +48,13 @@ exports.isEmailExists = (email) => {
     });
   });
 };
+
+exports.createUser = (user) => {
+  return new Promise((resolve, reject) => {
+    const insertQuery = "INSERT INTO users SET ?";
+    db.query(insertQuery, user, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
