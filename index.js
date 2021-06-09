@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const http = require("http");
-const { socketConnection, sendNotification } = require("./src/services/socket");
+const { socketConnection } = require("./src/services/socket");
 
 const Router = require("./src/routers/index");
 const app = express();

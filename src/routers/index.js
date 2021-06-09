@@ -1,7 +1,9 @@
 const express = require("express");
-const Router = express.Router();
+const router = express.Router();
 
-Router.use((req, res, next) => {
+const authRouters = require("./auth");
+
+router.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") {
     res.header("Access-Control-Allow-Methods", "GET,PATCH,POST,DELETE,OPTIONS");
@@ -11,8 +13,10 @@ Router.use((req, res, next) => {
   next();
 });
 
-Router.get("/", (req, res) => {
+router.get("/", (req, res) => {
   return res.status(200).send("pong");
 });
 
-module.exports = Router;
+router.use("/auth", authRouters);
+
+module.exports = router;
