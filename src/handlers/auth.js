@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const auth = require("../models/auth");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const {
   sendError,
@@ -9,6 +10,7 @@ const {
 } = require("../helpers/response");
 const { formatUserAuthentication } = require("../helpers/users");
 const { validationFormatter } = require("../helpers/errors");
+const { sendResetLink } = require("../services/sendOTP");
 
 const jwtSecret = process.env.JWT_SECRET;
 const saltRounds = Number(process.env.SALT_ROUNDS);
@@ -62,8 +64,8 @@ exports.register = async (req, res) => {
       pin,
       password: hashedPassword,
     };
-    const isEmailExists = await auth.isEmailExists(email);
 
+    const isEmailExists = await auth.isEmailExists(email);
     if (isEmailExists)
       return sendValidationError(res, [
         validationFormatter("email", "E-mail already in use"),
@@ -80,5 +82,31 @@ exports.register = async (req, res) => {
     return sendResponse(res, true, 201, "Account created!");
   } catch (error) {
     return sendError(res, 500, error);
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const isEmailExists = await auth.isEmailExists(email);
+    if (!isEmailExists)
+      return sendResponse(res, false, 404, "E-mail not found");
+
+    const buffer = await crypto.randomBytes(20);
+    const token = buffer.toString("hex");
+    const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
+
+    await auth.setResetToken(email, expiredAt, token);
+    const link = `https://arc-wallet.sipamungkas.com?token=${token}`;
+    console.log(link);
+    sendResetLink(email, link);
+    return sendResponse(
+      res,
+      true,
+      200,
+      "Reset Link has been sent to your email"
+    );
+  } catch (error) {
+    console.log(error);
   }
 };

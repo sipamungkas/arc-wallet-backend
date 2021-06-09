@@ -58,3 +58,14 @@ exports.createUser = (user) => {
     });
   });
 };
+
+exports.setResetToken = (email, expiredAt, token) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "UPDATE users set reset_token = ?, reset_expired = ? where email = ? ";
+    db.query(sqlQuery, [token, expiredAt, email], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
