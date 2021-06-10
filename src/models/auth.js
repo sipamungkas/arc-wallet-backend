@@ -3,8 +3,8 @@ const db = require("../database/dbMySql");
 exports.login = (username) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = [
-      "SELECT u.id, u.avatar, u.first_name, u.last_name, u.username, u.password, u.balance",
-      "FROM users u where u.email = ?",
+      "SELECT u.id, u.avatar, u.first_name, u.last_name, u.username, u.password, u.balance, c.phone_number",
+      "FROM users u LEFT JOIN contacts c on c.user_id = u.id where u.email = ? and c.`primary` is TRUE",
     ];
     // const columns = ["u.id", "u.username", "u.password", "u.name", "r.name"];
     db.query(

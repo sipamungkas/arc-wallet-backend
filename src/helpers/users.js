@@ -5,13 +5,15 @@ const formatUserAuthentication = (user, token) => {
     last_name: lastName,
     username,
     avatar,
+    phone_number: phoneNumber,
   } = user;
   return {
     avatar,
     id,
+    username,
     first_name: firstName,
     last_name: lastName,
-    username,
+    phone_number: phoneNumber,
     token,
   };
 };
