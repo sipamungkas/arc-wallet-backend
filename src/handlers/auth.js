@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const auth = require("../models/auth");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+// const crypto = require("crypto");
 
 const {
   sendError,
@@ -107,14 +107,22 @@ exports.resetPassword = async (req, res) => {
     if (!isEmailExists)
       return sendResponse(res, false, 404, "E-mail not found");
 
-    const buffer = await crypto.randomBytes(20);
-    const token = buffer.toString("hex");
-    const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
+    // const buffer = await crypto.randomBytes(20);
+    // const token = buffer.toString("hex");
+    // const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
 
-    await auth.setResetToken(email, expiredAt, token);
-    const link = `https://arc-wallet.sipamungkas.com?token=${token}`;
-    console.log(link);
-    emailService.sendResetLink(email, link);
+    // await auth.setResetToken(email, expiredAt, token);
+    // const link = `https://arc-wallet.sipamungkas.com?token=${token}`;
+    // console.log(link);
+    // emailService.sendResetLink(email, link);
+
+    const otp = generateOTP(6);
+    console.log(otp);
+    const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
+    const data = await auth.createOtp(email, otp, expiredAt);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    console.log(otp);
+    emailService.sendOTP(email, otp);
     return sendResponse(
       res,
       true,
@@ -128,21 +136,27 @@ exports.resetPassword = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   try {
-    const { token } = req.query;
-    const { password } = req.body;
+    // const { token } = req.query;
+    const { email, password, otp } = req.body;
 
-    const resetInformation = await auth.getResetInformation(token);
-    if (!resetInformation.length === 0)
-      return sendResponse(res, false, 401, "Invalid Token");
+    // const resetInformation = await auth.getResetInformation(token);
+    // if (!resetInformation.length === 0)
+    //   return sendResponse(res, false, 401, "Invalid Token");
 
-    const isPasswordMatch = await bcrypt.compare(
-      resetInformation[0].password,
-      password
-    );
+    // if (new Date(resetInformation[0].reset_expired) < new Date()) {
+    //   return sendResponse(res, false, 401, "Verification Code Expired!");
+    // }
 
-    if (new Date(resetInformation[0].reset_expired) < new Date()) {
-      return sendResponse(res, false, 401, "Verification Code Expired!");
+    const user = await auth.userOldPassword(email);
+    const data = await auth.checkOtp(email, otp);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    if (data.length === 0) return sendResponse(res, false, 400, "Invalid OTP");
+
+    if (new Date(data[0].expire_at) < new Date()) {
+      return sendResponse(res, false, 401, "OTP Expired");
     }
+
+    const isPasswordMatch = await bcrypt.compare(password, user[0].password);
 
     if (isPasswordMatch)
       return sendResponse(
@@ -153,7 +167,7 @@ exports.changePassword = async (req, res) => {
       );
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const isUpdated = await auth.setNewPassword(token, hashedPassword);
+    const isUpdated = await auth.setNewPassword(email, hashedPassword);
 
     if (isUpdated?.affectedRows > 0) {
       return sendResponse(res, true, 200, "Password updated");
@@ -161,6 +175,7 @@ exports.changePassword = async (req, res) => {
 
     return sendResponse(res, false, 200, "Failed to update the password");
   } catch (error) {
+    console.error(error);
     return sendError(res, 500, error);
   }
 };

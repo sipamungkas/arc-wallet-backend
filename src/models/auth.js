@@ -70,11 +70,10 @@ exports.setResetToken = (email, expiredAt, token) => {
   });
 };
 
-exports.setNewPassword = (token, password) => {
+exports.setNewPassword = (email, password) => {
   return new Promise((resolve, reject) => {
-    const sqlQuery =
-      "UPDATE users SET reset_token = null, reset_expired = null, password = ? where reset_token = ?";
-    db.query(sqlQuery, [password, token], (error, results) => {
+    const sqlQuery = "UPDATE users SET password = ? where email = ?";
+    db.query(sqlQuery, [password, email], (error, results) => {
       if (error) return reject(error);
       return resolve(results);
     });
@@ -157,6 +156,16 @@ exports.isOtpVerified = (email) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = "SELECT verified FROM otps where email = ?";
     db.query(sqlQuery, [email], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
+
+exports.userOldPassword = (email) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT password FROM users where email = ?";
+    db.query(sqlQuery, email, (error, results) => {
       if (error) return reject(error);
       return resolve(results);
     });
