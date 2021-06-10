@@ -91,3 +91,43 @@ exports.getResetInformation = (token) => {
     });
   });
 };
+
+exports.createOtp = (email, otp, expiredAt) => {
+  return new Promise((resolve, reject) => {
+    db.beginTransaction((transactionErr) => {
+      if (transactionErr) {
+        db.rollback(() => {
+          return reject(transactionErr);
+        });
+      }
+
+      let createOTP = "INSERT into otps(otp,email,expire_at) values(?,?,?)";
+      let values = [otp, email, expiredAt];
+      const checkQuery = "SELECT expire_at,verified FROM otps where email = ?";
+      db.query(checkQuery, email, (checkErr, checkResults) => {
+        if (checkErr) {
+          return db.rollback(() => {
+            reject(checkErr);
+          });
+        }
+        if (checkResults.length > 0) {
+          createOTP =
+            "UPDATE otps SET otp = ?, verified = FALSE,expire_at = ? where email = ?";
+          values = [otp, expiredAt, email];
+        }
+
+        db.query(createOTP, values, (otpError, otpResults) => {
+          if (otpError) {
+            return db.rollback(() => {
+              reject(otpError);
+            });
+          }
+
+          db.commit(() => {
+            return resolve(otpResults);
+          });
+        });
+      });
+    });
+  });
+};

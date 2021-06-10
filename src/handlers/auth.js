@@ -10,7 +10,8 @@ const {
 } = require("../helpers/response");
 const { formatUserAuthentication } = require("../helpers/users");
 const { validationFormatter } = require("../helpers/errors");
-const { sendResetLink } = require("../services/sendOTP");
+const emailService = require("../services/email");
+const { generateOTP } = require("../helpers/otps");
 
 const jwtSecret = process.env.JWT_SECRET;
 const saltRounds = Number(process.env.SALT_ROUNDS);
@@ -99,7 +100,7 @@ exports.resetPassword = async (req, res) => {
     await auth.setResetToken(email, expiredAt, token);
     const link = `https://arc-wallet.sipamungkas.com?token=${token}`;
     console.log(link);
-    sendResetLink(email, link);
+    emailService.sendResetLink(email, link);
     return sendResponse(
       res,
       true,
@@ -107,7 +108,7 @@ exports.resetPassword = async (req, res) => {
       "Reset Link has been sent to your email"
     );
   } catch (error) {
-    console.log(error);
+    return sendError(res, 500, error);
   }
 };
 
@@ -146,7 +147,23 @@ exports.changePassword = async (req, res) => {
 
     return sendResponse(res, false, 200, "Failed to update the password");
   } catch (error) {
+    return sendError(res, 500, error);
+  }
+};
+
+exports.createOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const otp = generateOTP(6);
+    console.log(otp);
+    const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
+    const data = await auth.createOtp(email, otp, expiredAt);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    console.log(otp);
+    emailService.sendOTP(email, otp);
+    return sendResponse(res, true, 200, "Please check your email for OTP");
+  } catch (error) {
     console.error(error);
-    return sendError(res, 500);
+    return sendError(res, 500, error);
   }
 };
