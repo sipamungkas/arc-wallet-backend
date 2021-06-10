@@ -10,7 +10,8 @@ const {
 } = require("../helpers/response");
 const { formatUserAuthentication } = require("../helpers/users");
 const { validationFormatter } = require("../helpers/errors");
-const { sendResetLink } = require("../services/sendOTP");
+const emailService = require("../services/email");
+const { generateOTP } = require("../helpers/otps");
 
 const jwtSecret = process.env.JWT_SECRET;
 const saltRounds = Number(process.env.SALT_ROUNDS);
@@ -57,14 +58,6 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, pin } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const newUser = {
-      username,
-      email,
-      pin,
-      password: hashedPassword,
-    };
-
     const isEmailExists = await auth.isEmailExists(email);
     if (isEmailExists)
       return sendValidationError(res, [
@@ -78,9 +71,31 @@ exports.register = async (req, res) => {
         validationFormatter("username", "Username already in use"),
       ]);
 
+    const isOTPVerified = await auth.isOtpVerified(email);
+    if (!isOTPVerified) {
+      return sendResponse(res, false, 400, "Bad request");
+    }
+
+    if (isOTPVerified.length === 0) {
+      return sendResponse(res, false, 401, "Please verifiy your otp first!");
+    }
+
+    if (isOTPVerified[0].verified !== true) {
+      return sendResponse(res, false, 401, "Please verifiy your otp again!");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const newUser = {
+      username,
+      email,
+      pin,
+      password: hashedPassword,
+    };
+
     await auth.createUser(newUser);
     return sendResponse(res, true, 201, "Account created!");
   } catch (error) {
+    console.warn(error);
     return sendError(res, 500, error);
   }
 };
@@ -99,7 +114,7 @@ exports.resetPassword = async (req, res) => {
     await auth.setResetToken(email, expiredAt, token);
     const link = `https://arc-wallet.sipamungkas.com?token=${token}`;
     console.log(link);
-    sendResetLink(email, link);
+    emailService.sendResetLink(email, link);
     return sendResponse(
       res,
       true,
@@ -107,6 +122,97 @@ exports.resetPassword = async (req, res) => {
       "Reset Link has been sent to your email"
     );
   } catch (error) {
-    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const { password } = req.body;
+
+    const resetInformation = await auth.getResetInformation(token);
+    if (!resetInformation.length === 0)
+      return sendResponse(res, false, 401, "Invalid Token");
+
+    const isPasswordMatch = await bcrypt.compare(
+      resetInformation[0].password,
+      password
+    );
+
+    if (new Date(resetInformation[0].reset_expired) < new Date()) {
+      return sendResponse(res, false, 401, "Verification Code Expired!");
+    }
+
+    if (isPasswordMatch)
+      return sendResponse(
+        res,
+        false,
+        200,
+        "Please use a different password from the old one"
+      );
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const isUpdated = await auth.setNewPassword(token, hashedPassword);
+
+    if (isUpdated?.affectedRows > 0) {
+      return sendResponse(res, true, 200, "Password updated");
+    }
+
+    return sendResponse(res, false, 200, "Failed to update the password");
+  } catch (error) {
+    return sendError(res, 500, error);
+  }
+};
+
+exports.createOTP = async (req, res) => {
+  try {
+    const { email, username } = req.body;
+
+    const isEmailExists = await auth.isEmailExists(email);
+    if (isEmailExists)
+      return sendValidationError(res, [
+        validationFormatter("email", "E-mail already in use"),
+      ]);
+
+    const isUsernameExists = await auth.isUsernameExists(username);
+
+    if (isUsernameExists)
+      return sendValidationError(res, [
+        validationFormatter("username", "Username already in use"),
+      ]);
+
+    const otp = generateOTP(6);
+    console.log(otp);
+    const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;
+    const data = await auth.createOtp(email, otp, expiredAt);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    console.log(otp);
+    emailService.sendOTP(email, otp);
+    return sendResponse(res, true, 200, "Please check your email for OTP");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, error);
+  }
+};
+
+exports.otpVerification = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const data = await auth.checkOtp(email, otp);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    if (data.length === 0) return sendResponse(res, false, 400, "Bad request");
+
+    if (new Date(data[0].expire_at) < new Date()) {
+      return sendResponse(res, false, 401, "OTP Expired");
+    }
+
+    await auth.setOtpStatus(email, otp, true);
+
+    return sendResponse(res, true, 200, "OTP Verification success");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, error);
   }
 };

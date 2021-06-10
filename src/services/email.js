@@ -25,8 +25,17 @@ let transporter = nodemailer.createTransport({
   },
 });
 
+const otpTemplate = (otp) => `
+<p style="text-align: left;"><strong>Your OTP</strong></p>
+<p style="font-size: 2rem; text-align: left;">${otp}</p>
+<p style="text-align: left;"><strong>OTP will expired in 3 hours</strong></p>
+`;
+
+const otpTemplatePlain = (otp) =>
+  `Your OTP \n ${otp} \nThe OTP will expired in 3 hours`;
+
 // async..await is not allowed in global scope, must use a wrapper
-exports.sendOTP = async (receiver, plainMessage, htmlMessage) => {
+exports.sendOTP = async (receiver, otp) => {
   try {
     if (!receiver) return;
 
@@ -42,8 +51,8 @@ exports.sendOTP = async (receiver, plainMessage, htmlMessage) => {
       from: "'Arc Wallet' <no-reply-arcwallet@sipamungkas.com>", // sender address
       to: receiver, // list of receivers
       subject: "Arc Wallet - OTP", // Subject line
-      text: plainMessage, // plain text body
-      html: htmlMessage, // html body
+      text: otpTemplatePlain(otp), // plain text body
+      html: otpTemplate(otp), // html body
     });
     // console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
