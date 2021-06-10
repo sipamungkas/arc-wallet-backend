@@ -1,5 +1,4 @@
 const db = require("../database/dbMySql");
-const mysql = require("mysql");
 
 exports.login = (username) => {
   return new Promise((resolve, reject) => {
