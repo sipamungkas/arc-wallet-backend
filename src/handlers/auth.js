@@ -110,3 +110,42 @@ exports.resetPassword = async (req, res) => {
     console.log(error);
   }
 };
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const { password } = req.body;
+
+    const resetInformation = await auth.getResetInformation(token);
+    if (!resetInformation.length === 0)
+      return sendResponse(res, false, 401, "Invalid Token");
+
+    const isPasswordMatch = await bcrypt.compare(
+      resetInformation[0].password,
+      password
+    );
+
+    if (new Date(resetInformation[0].reset_expired) < new Date()) {
+      return sendResponse(res, false, 401, "Verification Code Expired!");
+    }
+
+    if (isPasswordMatch)
+      return sendResponse(
+        res,
+        false,
+        200,
+        "Please use a different password from the old one"
+      );
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const isUpdated = await auth.createUser(token, hashedPassword);
+
+    if (isUpdated?.affectedRows > 0) {
+      return sendResponse(res, true, 200, "Password updated");
+    }
+
+    return sendResponse(res, false, 200, "Failed to update the password");
+  } catch (error) {
+    return sendError(res, 500);
+  }
+};

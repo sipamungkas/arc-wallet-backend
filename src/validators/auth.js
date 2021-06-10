@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, query } = require("express-validator");
 
 exports.loginRules = () => [
   body("email")
@@ -27,4 +27,11 @@ exports.registerRules = () => [
     .isLength({ min: 8 })
     .withMessage("Minimum password length is 8"),
   body("pin").isLength({ max: 6, min: 6 }).withMessage("Invalid Pin"),
+];
+
+exports.newPassword = () => [
+  query("token").notEmpty().withMessage("Invalid Token"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Minimum password length is 8"),
 ];
