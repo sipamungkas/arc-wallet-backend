@@ -15,5 +15,11 @@ router.post(
   auth.changePassword
 );
 router.post("/generate-otp", validator.createOTP(), validate, auth.createOTP);
+router.post(
+  "/otp-verification",
+  validator.otpVerification(),
+  validate,
+  auth.otpVerification
+);
 
 module.exports = router;

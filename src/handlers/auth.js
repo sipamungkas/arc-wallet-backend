@@ -167,3 +167,24 @@ exports.createOTP = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
+exports.otpVerification = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const data = await auth.checkOtp(email, otp);
+    if (!data) return sendResponse(res, false, 500, "Internal Server Error");
+    if (data.length === 0) return sendResponse(res, false, 400, "Bad request");
+
+    if (new Date(data[0].expire_at) < new Date()) {
+      return sendResponse(res, false, 401, "OTP Expired");
+    }
+
+    await auth.setOtpStatus(email, otp, true);
+
+    return sendResponse(res, true, 200, "OTP Verification success");
+  } catch (error) {
+    console.error(error);
+    return sendError(res, 500, error);
+  }
+};

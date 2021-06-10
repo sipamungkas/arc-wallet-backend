@@ -45,3 +45,17 @@ exports.createOTP = () => [
     .withMessage("Invalid email address")
     .bail(),
 ];
+
+exports.otpVerification = () => [
+  body("email")
+    .notEmpty()
+    .withMessage("Email can not be empty")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email address")
+    .bail(),
+  body("otp")
+    .isString()
+    .isLength({ min: 6, max: 6 })
+    .withMessage("Invalid OTP"),
+];

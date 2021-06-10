@@ -1,4 +1,5 @@
 const db = require("../database/dbMySql");
+const mysql = require("mysql");
 
 exports.login = (username) => {
   return new Promise((resolve, reject) => {
@@ -128,6 +129,27 @@ exports.createOtp = (email, otp, expiredAt) => {
           });
         });
       });
+    });
+  });
+};
+
+exports.checkOtp = (email, otp) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT expire_at from otps where email = ? and otp = ? ";
+    db.query(sqlQuery, [email, otp], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
+
+exports.setOtpStatus = (email, otp, status) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "UPDATE otps SET verified = ? where email = ? and otp = ? ";
+    db.query(sqlQuery, [status, email, otp], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
     });
   });
 };
