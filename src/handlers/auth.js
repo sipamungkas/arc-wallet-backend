@@ -138,7 +138,7 @@ exports.changePassword = async (req, res) => {
       );
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const isUpdated = await auth.createUser(token, hashedPassword);
+    const isUpdated = await auth.setNewPassword(token, hashedPassword);
 
     if (isUpdated?.affectedRows > 0) {
       return sendResponse(res, true, 200, "Password updated");
@@ -146,6 +146,7 @@ exports.changePassword = async (req, res) => {
 
     return sendResponse(res, false, 200, "Failed to update the password");
   } catch (error) {
+    console.error(error);
     return sendError(res, 500);
   }
 };

@@ -73,7 +73,7 @@ exports.setResetToken = (email, expiredAt, token) => {
 exports.setNewPassword = (token, password) => {
   return new Promise((resolve, reject) => {
     const sqlQuery =
-      "UPDATE users SET reset_token = null, reset_expired = null, password = ? where token = ?";
+      "UPDATE users SET reset_token = null, reset_expired = null, password = ? where reset_token = ?";
     db.query(sqlQuery, [password, token], (error, results) => {
       if (error) return reject(error);
       return resolve(results);
