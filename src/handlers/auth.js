@@ -58,14 +58,6 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, pin } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const newUser = {
-      username,
-      email,
-      pin,
-      password: hashedPassword,
-    };
-
     const isEmailExists = await auth.isEmailExists(email);
     if (isEmailExists)
       return sendValidationError(res, [
@@ -79,9 +71,31 @@ exports.register = async (req, res) => {
         validationFormatter("username", "Username already in use"),
       ]);
 
+    const isOTPVerified = await auth.isOtpVerified(email);
+    if (!isOTPVerified) {
+      return sendResponse(res, false, 400, "Bad request");
+    }
+
+    if (isOTPVerified.length === 0) {
+      return sendResponse(res, false, 401, "Please verifiy your otp first!");
+    }
+
+    if (isOTPVerified[0].verified !== true) {
+      return sendResponse(res, false, 401, "Please verifiy your otp again!");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const newUser = {
+      username,
+      email,
+      pin,
+      password: hashedPassword,
+    };
+
     await auth.createUser(newUser);
     return sendResponse(res, true, 201, "Account created!");
   } catch (error) {
+    console.warn(error);
     return sendError(res, 500, error);
   }
 };
@@ -153,7 +167,21 @@ exports.changePassword = async (req, res) => {
 
 exports.createOTP = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, username } = req.body;
+
+    const isEmailExists = await auth.isEmailExists(email);
+    if (isEmailExists)
+      return sendValidationError(res, [
+        validationFormatter("email", "E-mail already in use"),
+      ]);
+
+    const isUsernameExists = await auth.isUsernameExists(username);
+
+    if (isUsernameExists)
+      return sendValidationError(res, [
+        validationFormatter("username", "Username already in use"),
+      ]);
+
     const otp = generateOTP(6);
     console.log(otp);
     const expiredAt = new Date().getTime() + 3 * 60 * 60 * 1000;

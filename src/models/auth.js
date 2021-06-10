@@ -152,3 +152,13 @@ exports.setOtpStatus = (email, otp, status) => {
     });
   });
 };
+
+exports.isOtpVerified = (email) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT verified FROM otps where email = ?";
+    db.query(sqlQuery, [email], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
