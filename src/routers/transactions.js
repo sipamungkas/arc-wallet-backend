@@ -22,4 +22,10 @@ router.post(
   transaction.subcription
 );
 
+router.get(
+  "/:transactionId",
+  authenticateToken,
+  transaction.getTransactionDetail
+);
+
 module.exports = router;

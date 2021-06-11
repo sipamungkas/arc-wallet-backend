@@ -304,3 +304,21 @@ exports.createTransfer = (userId, amount, receiver, notes) => {
     });
   });
 };
+
+exports.getTransactionById = (userId, transactionId) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = [
+      "SELECT t.*, type.name as type, sender.username as sender,",
+      "receiver_data .username as receiver_name, (SELECT c.phone_number FROM contacts c",
+      "where c.user_id = t.receiver and c.`primary` is TRUE ) as phone_number ",
+      "FROM transactions t LEFT JOIN types as type on type.id = t.type_id",
+      "LEFT JOIN users as sender on sender.id = t.user_id",
+      "LEFT join users as receiver_data on receiver_data.id = t.receiver",
+      "WHERE t.user_id = ? and t.id = ? ",
+    ];
+    db.query(sqlQuery.join(" "), [userId, transactionId], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};

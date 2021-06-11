@@ -131,3 +131,18 @@ exports.subcription = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
+exports.getTransactionDetail = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { transactionId } = req.params;
+
+    const data = await transaction.getTransactionById(userId, transactionId);
+    if (data.length < 1)
+      return sendResponse(res, false, 404, "Transaction not found");
+    return sendResponse(res, true, 200, "Transaction Detail", data);
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
