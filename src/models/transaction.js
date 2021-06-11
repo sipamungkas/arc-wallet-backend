@@ -187,3 +187,120 @@ exports.checkUserId = (userId) => {
     });
   });
 };
+
+exports.createTransfer = (userId, amount, receiver, notes) => {
+  return new Promise((resolve, reject) => {
+    db.beginTransaction((transactionErr) => {
+      if (transactionErr) {
+        return db.rollback(() => {
+          return reject(transactionErr);
+        });
+      }
+
+      // create new transaction
+
+      const id = uuidV4();
+      const inserTransaction =
+        "INSERT INTO transactions(id,user_id,amount,receiver,notes,type_id) values (?,?,?,?,?,1)";
+
+      db.query(
+        inserTransaction,
+        [id, userId, amount, receiver, notes],
+        (insertTransactionError) => {
+          if (insertTransactionError) {
+            return db.rollback(() => {
+              return reject(insertTransactionError);
+            });
+          }
+
+          // get sender current balance
+          const currentBalanceSQL =
+            "SELECT u.balance FROM users u where u.id = ?";
+          db.query(
+            currentBalanceSQL,
+            userId,
+            (currentBalanceError, currentBalanceSuccess) => {
+              if (currentBalanceError) {
+                return db.rollback(() => {
+                  return reject(currentBalanceError);
+                });
+              }
+
+              // update sender balance
+              const currentBalance = currentBalanceSuccess[0].balance;
+
+              if (currentBalance < amount) {
+                db.rollback(() => {
+                  return reject("Insufficent Balance");
+                });
+              }
+
+              const newBalance = currentBalance - amount;
+
+              const updateBalanceQuery =
+                "UPDATE users SET balance = ? where id = ?";
+              db.query(
+                updateBalanceQuery,
+                [newBalance, userId],
+                (updateBalanceError, updateBalanceSuccess) => {
+                  if (updateBalanceError) {
+                    return db.rollback(() => {
+                      return reject(updateBalanceError);
+                    });
+                  }
+
+                  // get receiver current balance
+
+                  db.query(
+                    currentBalanceSQL,
+                    receiver,
+                    (
+                      receiverCurrentBalanceError,
+                      receiverCurrentBalanceSuccess
+                    ) => {
+                      if (receiverCurrentBalanceError) {
+                        return db.rollback(() => {
+                          return reject(receiverCurrentBalanceError);
+                        });
+                      }
+
+                      const receiverCurrentBalance =
+                        receiverCurrentBalanceSuccess[0].balance;
+
+                      const receiverNewBalance =
+                        receiverCurrentBalance + amount;
+
+                      db.query(
+                        updateBalanceQuery,
+                        [receiverNewBalance, receiver],
+                        (
+                          updateReceiverBalanceError,
+                          updateReceiverBalanceSuccess
+                        ) => {
+                          if (updateReceiverBalanceError) {
+                            return db.rollback(() => {
+                              return reject(updateReceiverBalanceError);
+                            });
+                          }
+
+                          db.commit((commitError) => {
+                            if (commitError) {
+                              return db.rollback(() => {
+                                return reject(commitError);
+                              });
+                            }
+                            return resolve(updateReceiverBalanceSuccess);
+                          });
+                        }
+                      );
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+      );
+    });
+  });
+};
