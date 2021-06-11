@@ -43,8 +43,8 @@ exports.createTopUp = (userId, amount) => {
 
       const id = uuidV4();
       const inserTransaction =
-        "INSERT INTO transactions(id,user_id,amount,type_id,notes) values (?,?,?,3,'Top Up')";
-      console.log([id, userId, amount], inserTransaction);
+        "INSERT INTO transactions(id,user_id,amount,type_id,notes) values (?,?,?,2,'Top Up')";
+
       db.query(
         inserTransaction,
         [id, userId, amount],
@@ -96,6 +96,94 @@ exports.createTopUp = (userId, amount) => {
           );
         }
       );
+    });
+  });
+};
+
+exports.createSubcription = (userId, amount, notes) => {
+  return new Promise((resolve, reject) => {
+    db.beginTransaction((transactionErr) => {
+      if (transactionErr) {
+        return db.rollback(() => {
+          return reject(transactionErr);
+        });
+      }
+
+      // create new transaction
+
+      const id = uuidV4();
+      const inserTransaction =
+        "INSERT INTO transactions(id,user_id,amount,type_id,notes) values (?,?,?,3,?)";
+
+      db.query(
+        inserTransaction,
+        [id, userId, amount, notes],
+        (insertTransactionError) => {
+          if (insertTransactionError) {
+            return db.rollback(() => {
+              return reject(insertTransactionError);
+            });
+          }
+
+          // get current balance
+          const currentBalanceSQL =
+            "SELECT u.balance FROM users u where u.id = ?";
+          db.query(
+            currentBalanceSQL,
+            userId,
+            (currentBalanceError, currentBalanceSuccess) => {
+              if (currentBalanceError) {
+                return db.rollback(() => {
+                  return reject(currentBalanceError);
+                });
+              }
+
+              // update balance
+              const currentBalance = currentBalanceSuccess[0].balance;
+
+              if (currentBalance < amount) {
+                db.rollback(() => {
+                  return reject("Insufficent Balance");
+                });
+              }
+
+              const newBalance = currentBalance - amount;
+
+              const updateBalanceQuery =
+                "UPDATE users SET balance = ? where id = ?";
+              db.query(
+                updateBalanceQuery,
+                [newBalance, userId],
+                (updateBalanceError, updateBalanceSuccess) => {
+                  if (updateBalanceError) {
+                    return db.rollback(() => {
+                      return reject(updateBalanceError);
+                    });
+                  }
+                  db.commit((commitError) => {
+                    if (commitError) {
+                      return db.rollback(() => {
+                        return reject(commitError);
+                      });
+                    }
+                    return resolve(updateBalanceSuccess);
+                  });
+                }
+              );
+            }
+          );
+        }
+      );
+    });
+  });
+};
+
+exports.checkUserId = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT id FROM users u where u.id = ?";
+    db.query(sqlQuery, userId, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
     });
   });
 };

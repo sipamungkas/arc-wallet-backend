@@ -67,7 +67,7 @@ exports.createTransaction = async (req, res) => {
     const { amount, type_id: typeId, to, notes } = req.body;
 
     switch (typeId) {
-      case 3:
+      case 2:
         const topUp = await transaction.createTopUp(userId, amount);
         console.log(topUp);
         if (!topUp) {
@@ -77,9 +77,35 @@ exports.createTransaction = async (req, res) => {
           return sendResponse(res, true, 200, "Top Up Success");
         }
         return sendResponse(res, false, 400, "Top Up Failed");
+
       default:
         return sendResponse(res, true, 200, "Default Transaction");
     }
+  } catch (error) {
+    console.warn(error);
+    return sendError(res, 500, error);
+  }
+};
+
+exports.subcription = async (req, res) => {
+  try {
+    const { amount, user_id: userId, notes } = req.body;
+    const isUserExists = await transaction.checkUserId(userId);
+    if (!isUserExists || isUserExists.length < 1)
+      return sendResponse(res, false, 404, "Invalid User");
+    const subcription = await transaction.createSubcription(
+      userId,
+      amount,
+      notes
+    );
+
+    if (!subcription) {
+      return sendResponse(res, false, 500, "Internal Server Error");
+    }
+    if (subcription.affectedRows > 0) {
+      return sendResponse(res, true, 200, "Subcription Success");
+    }
+    return sendResponse(res, false, 400, "Subcription Success Failed");
   } catch (error) {
     console.warn(error);
     return sendError(res, 500, error);

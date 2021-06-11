@@ -15,4 +15,11 @@ router.post(
   transaction.createTransaction
 );
 
+router.post(
+  "/subcription",
+  validator.createSubcription(),
+  validate,
+  transaction.subcription
+);
+
 module.exports = router;
