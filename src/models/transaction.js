@@ -1,4 +1,5 @@
 const db = require("../database/dbMySql");
+const { v4: uuidV4 } = require("uuid");
 
 exports.receiverList = (userId, search, limit, offset) => {
   return new Promise((resolve, reject) => {
@@ -26,5 +27,75 @@ exports.receiverList = (userId, search, limit, offset) => {
         });
       }
     );
+  });
+};
+
+exports.createTopUp = (userId, amount) => {
+  return new Promise((resolve, reject) => {
+    db.beginTransaction((transactionErr) => {
+      if (transactionErr) {
+        return db.rollback(() => {
+          return reject(transactionErr);
+        });
+      }
+
+      // create new transaction
+
+      const id = uuidV4();
+      const inserTransaction =
+        "INSERT INTO transactions(id,user_id,amount,type_id,notes) values (?,?,?,3,'Top Up')";
+      console.log([id, userId, amount], inserTransaction);
+      db.query(
+        inserTransaction,
+        [id, userId, amount],
+        (insertTransactionError) => {
+          if (insertTransactionError) {
+            return db.rollback(() => {
+              return reject(insertTransactionError);
+            });
+          }
+
+          // get current balance
+          const currentBalanceSQL =
+            "SELECT u.balance FROM users u where u.id = ?";
+          db.query(
+            currentBalanceSQL,
+            userId,
+            (currentBalanceError, currentBalanceSuccess) => {
+              if (currentBalanceError) {
+                return db.rollback(() => {
+                  return reject(currentBalanceError);
+                });
+              }
+
+              // update balance
+              const currentBalance = currentBalanceSuccess[0].balance;
+              const newBalance = currentBalance + amount;
+              const updateBalanceQuery =
+                "UPDATE users SET balance = ? where id = ?";
+              db.query(
+                updateBalanceQuery,
+                [newBalance, userId],
+                (updateBalanceError, updateBalanceSuccess) => {
+                  if (updateBalanceError) {
+                    return db.rollback(() => {
+                      return reject(updateBalanceError);
+                    });
+                  }
+                  db.commit((commitError) => {
+                    if (commitError) {
+                      return db.rollback(() => {
+                        return reject(commitError);
+                      });
+                    }
+                    return resolve(updateBalanceSuccess);
+                  });
+                }
+              );
+            }
+          );
+        }
+      );
+    });
   });
 };

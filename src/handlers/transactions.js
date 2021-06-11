@@ -1,6 +1,7 @@
 const {
   sendError,
   sendResponseWithPagination,
+  sendResponse,
 } = require("../helpers/response");
 const transaction = require("../models/transaction");
 
@@ -56,6 +57,31 @@ exports.getReceiver = async (req, res) => {
     );
   } catch (error) {
     console.error(error);
+    return sendError(res, 500, error);
+  }
+};
+
+exports.createTransaction = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { amount, type_id: typeId, to, notes } = req.body;
+
+    switch (typeId) {
+      case 3:
+        const topUp = await transaction.createTopUp(userId, amount);
+        console.log(topUp);
+        if (!topUp) {
+          return sendResponse(res, false, 500, "Internal Server Error");
+        }
+        if (topUp.affectedRows > 0) {
+          return sendResponse(res, true, 200, "Top Up Success");
+        }
+        return sendResponse(res, false, 400, "Top Up Failed");
+      default:
+        return sendResponse(res, true, 200, "Default Transaction");
+    }
+  } catch (error) {
+    console.warn(error);
     return sendError(res, 500, error);
   }
 };
