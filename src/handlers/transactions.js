@@ -132,7 +132,7 @@ exports.subcription = async (req, res) => {
   }
 };
 
-exports.getTransactionDetail = async (req, res) => {
+exports.transactionDetail = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
     const { transactionId } = req.params;
@@ -143,6 +143,51 @@ exports.getTransactionDetail = async (req, res) => {
     return sendResponse(res, true, 200, "Transaction Detail", data);
   } catch (error) {
     console.log(error);
+    return sendError(res, 500, error);
+  }
+};
+
+exports.allTransaction = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { search, page, limit } = req.query;
+    const { baseUrl, path } = req;
+    const pageNumber = Number(page) || 1;
+    const limitPerPage = Number(limit) || 3;
+    const offset = (pageNumber - 1) * limitPerPage;
+
+    const transactions = await transaction.getAllTransaction(
+      userId,
+
+      limitPerPage,
+      offset
+    );
+
+    const totalPage = Math.ceil(transactions.total / limitPerPage);
+    const info = {
+      total: transactions.total,
+      current_page: pageNumber,
+      total_page: totalPage,
+      next:
+        pageNumber >= totalPage
+          ? null
+          : `${baseUrl}${path}?page=${pageNumber + 1}&limit=${limitPerPage}`,
+      prev:
+        pageNumber === 1
+          ? null
+          : `${baseUrl}${path}?page=${pageNumber - 1}&limit=${limitPerPage}`,
+    };
+
+    return sendResponseWithPagination(
+      res,
+      true,
+      200,
+      "List of Transaction",
+      transactions.data,
+      info
+    );
+  } catch (error) {
+    console.error(error);
     return sendError(res, 500, error);
   }
 };

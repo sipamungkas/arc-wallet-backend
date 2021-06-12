@@ -322,3 +322,36 @@ exports.getTransactionById = (userId, transactionId) => {
     });
   });
 };
+
+exports.getAllTransaction = (userId, limit, offset) => {
+  return new Promise((resolve, reject) => {
+    let total = 0;
+    const sqlQuery = [
+      "SELECT t.*, type.name as type, sender.username as sender,",
+      "receiver_data .username as receiver_name, (SELECT c.phone_number FROM contacts c",
+      "where c.user_id = t.receiver and c.`primary` is TRUE ) as phone_number ",
+      "FROM transactions t LEFT JOIN types as type on type.id = t.type_id",
+      "LEFT JOIN users as sender on sender.id = t.user_id",
+      "LEFT join users as receiver_data on receiver_data.id = t.receiver",
+      "WHERE t.user_id = ? or t.receiver = ? ",
+      "ORDER BY t.created_at desc",
+      "LIMIT ? OFFSET ?",
+    ];
+
+    db.query(
+      sqlQuery.join(" "),
+      [userId, userId, limit, offset],
+      (error, results) => {
+        if (error) return reject(error);
+
+        const countSql =
+          "SELECT count(t.id) AS total FROM transactions t where t.user_id = ?";
+        db.query(countSql, [userId], (countErr, countResults) => {
+          if (countErr) return reject(countErr);
+          total = countResults[0].total;
+          return resolve({ data: results, total });
+        });
+      }
+    );
+  });
+};
