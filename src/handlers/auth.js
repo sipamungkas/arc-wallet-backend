@@ -22,6 +22,7 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await auth.login(email, password);
+    console.log(user);
     if (!user) {
       return sendResponse(res, false, 401, "Invalid Credentials");
     }
@@ -35,7 +36,6 @@ exports.login = async (req, res) => {
       user_id: user.id,
       name: user.name,
       email: user.email,
-      role_id: user.roleId,
     };
 
     const token = jwt.sign(data, jwtSecret, {
@@ -51,6 +51,7 @@ exports.login = async (req, res) => {
       formatUserAuthentication(user, token)
     );
   } catch (error) {
+    console.log(error);
     return sendError(res, 500, error);
   }
 };
@@ -87,9 +88,11 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const hashedPin = await bcrypt.hash(pin, saltRounds);
-    console.log(hashedPin.length);
+
     const newUser = {
       username,
+      first_name: username,
+      last_name: username,
       email,
       pin: hashedPin,
       password: hashedPassword,

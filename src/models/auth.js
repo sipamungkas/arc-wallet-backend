@@ -3,18 +3,15 @@ const db = require("../database/dbMySql");
 exports.login = (username) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = [
-      "SELECT u.id, u.avatar, u.first_name, u.last_name, u.username, u.password, u.balance, c.phone_number",
-      "FROM users u LEFT JOIN contacts c on c.user_id = u.id where u.email = ? and c.`primary` is TRUE",
+      "SELECT u.id, u.avatar, u.first_name, u.last_name, u.username, u.password, u.balance,",
+      "(SELECT phone_number FROM contacts c where c.`primary` is TRUE and c.user_id = u.id) as phone_number",
+      "FROM users u LEFT JOIN contacts c on c.user_id = u.id where u.email = ?",
     ];
     // const columns = ["u.id", "u.username", "u.password", "u.name", "r.name"];
-    db.query(
-      sqlQuery.join(" "),
-      [username, username],
-      function (error, results) {
-        if (error) return reject(error);
-        return resolve(results[0]);
-      }
-    );
+    db.query(sqlQuery.join(" "), username, function (error, results) {
+      if (error) return reject(error);
+      return resolve(results[0]);
+    });
   });
 };
 
