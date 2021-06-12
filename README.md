@@ -17,11 +17,37 @@
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/download/)
-- MySql
-- Bcrypt
-- JWT
-- Express
+### Dependencies
+
+| name              | Version   |
+| ----------------- | --------- |
+| add               | ^2.0.6    |
+| bcrypt            | ^5.0.1    |
+| date-fns          | ^2.22.1   |
+| dotenv            | ^10.0.0   |
+| express           | ^4.17.1   |
+| express-validator | ^6.11.1   |
+| fs-extra          | ^10.0.0   |
+| jsonwebtoken      | ^8.5.1    |
+| multer            | ^1.4.2    |
+| mysql             | ^2.18.1   |
+| nodemailer        | ^6.6.1    |
+| redis             | ^3.1.2    |
+| socket.io         | ^4.1.2    |
+| uuid              | ^8.3.2    |
+| yarn              | "^1.22.10 |
+
+---
+
+### Dev Dependencies
+
+| name                   | Version |
+| ---------------------- | ------- |
+| eslint                 | ^7.28.0 |
+| eslint-config-prettier | ^8.3.0  |
+| morgan                 | ^1.10.0 |
+| nodemon                | ^2.0.7  |
+| prettier               | ^2.3.   |
 
 ## ERD
 
@@ -82,4 +108,4 @@ npm dev
 
 ## API Documentation
 
-[ARC WALLET Backend on Postman](https://documenter.getpostman.com/view/)
+[ARC WALLET Backend on Postman](https://documenter.getpostman.com/view/6708077/TzeRo9Ta)
