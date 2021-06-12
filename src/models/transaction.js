@@ -355,3 +355,13 @@ exports.getAllTransaction = (userId, limit, offset) => {
     );
   });
 };
+
+exports.checkPin = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT pin FROM users u WHERE u.id = ?";
+    db.query(sqlQuery, userId, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};

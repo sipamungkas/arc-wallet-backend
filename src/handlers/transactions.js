@@ -4,6 +4,7 @@ const {
   sendResponse,
 } = require("../helpers/response");
 const transaction = require("../models/transaction");
+const bcrypt = require("bcrypt");
 
 exports.getReceiver = async (req, res) => {
   try {
@@ -64,13 +65,20 @@ exports.getReceiver = async (req, res) => {
 exports.createTransaction = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
-    const { amount, type_id: typeId, receiver, notes } = req.body;
+    const { amount, type_id: typeId, receiver, notes, pin } = req.body;
 
     switch (typeId) {
       case 1:
         const isUserExists = await transaction.checkUserId(receiver);
         if (!isUserExists || isUserExists.length < 1)
           return sendResponse(res, false, 404, "Invalid User");
+
+        const data = await transaction.checkPin(userId);
+
+        const isPinMatch = await bcrypt.compare(pin, data[0].password);
+
+        if (!isPinMatch)
+          return sendResponse(res, false, 401, "Invalid Pin Code");
 
         const transfer = await transaction.createTransfer(
           userId,
@@ -150,7 +158,7 @@ exports.transactionDetail = async (req, res) => {
 exports.allTransaction = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
-    const { search, page, limit } = req.query;
+    const { page, limit } = req.query;
     const { baseUrl, path } = req;
     const pageNumber = Number(page) || 1;
     const limitPerPage = Number(limit) || 3;
