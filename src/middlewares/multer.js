@@ -36,8 +36,6 @@ const uploadAvatar = multer({
   fileFilter: imageFileFilter,
 });
 
-c;
-
 const errorMulterHandler = (uploadFunction) => {
   return (req, res, next) => {
     uploadFunction(req, res, function (err) {

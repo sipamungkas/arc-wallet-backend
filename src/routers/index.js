@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const authRouters = require("./auth");
+const userRouters = require("./user");
 const transactionRouters = require("./transactions");
 
 router.use((req, res, next) => {
@@ -20,5 +21,6 @@ router.get("/", (req, res) => {
 
 router.use("/auth", authRouters);
 router.use("/transactions", transactionRouters);
+router.use("/user", userRouters);
 
 module.exports = router;
