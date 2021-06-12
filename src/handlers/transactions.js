@@ -75,7 +75,7 @@ exports.createTransaction = async (req, res) => {
 
         const data = await transaction.checkPin(userId);
 
-        const isPinMatch = await bcrypt.compare(pin, data[0].password);
+        const isPinMatch = await bcrypt.compare(pin, data[0].pin);
 
         if (!isPinMatch)
           return sendResponse(res, false, 401, "Invalid Pin Code");
