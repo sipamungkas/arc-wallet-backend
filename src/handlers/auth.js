@@ -81,15 +81,17 @@ exports.register = async (req, res) => {
       return sendResponse(res, false, 401, "Please verifiy your otp first!");
     }
 
-    if (isOTPVerified[0].verified !== true) {
+    if (isOTPVerified[0].verified != true) {
       return sendResponse(res, false, 401, "Please verifiy your otp again!");
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPin = await bcrypt.hash(pin, saltRounds);
+    console.log(hashedPin.length);
     const newUser = {
       username,
       email,
-      pin,
+      pin: hashedPin,
       password: hashedPassword,
     };
 
