@@ -1,5 +1,6 @@
 const db = require("../database/dbMySql");
 const { v4: uuidV4 } = require("uuid");
+const mysql = require("mysql");
 
 exports.receiverList = (userId, search, limit, offset) => {
   return new Promise((resolve, reject) => {
@@ -323,9 +324,11 @@ exports.getTransactionById = (userId, transactionId) => {
   });
 };
 
-exports.getAllTransaction = (userId, limit, offset) => {
+exports.getAllTransaction = (userId, limit, offset, filter) => {
+  console.log([userId, limit, offset, filter]);
   return new Promise((resolve, reject) => {
     let total = 0;
+    const values = [userId, userId];
     const sqlQuery = [
       "SELECT t.*, type.name as type, sender.username as sender,",
       "receiver_data .username as receiver_name, (SELECT c.phone_number FROM contacts c",
@@ -333,26 +336,39 @@ exports.getAllTransaction = (userId, limit, offset) => {
       "FROM transactions t LEFT JOIN types as type on type.id = t.type_id",
       "LEFT JOIN users as sender on sender.id = t.user_id",
       "LEFT join users as receiver_data on receiver_data.id = t.receiver",
-      "WHERE t.user_id = ? or t.receiver = ? ",
-      "ORDER BY t.created_at desc",
-      "LIMIT ? OFFSET ?",
     ];
 
-    db.query(
-      sqlQuery.join(" "),
-      [userId, userId, limit, offset],
-      (error, results) => {
-        if (error) return reject(error);
+    switch (filter) {
+      case "expense":
+        sqlQuery.push(
+          "WHERE (t.user_id = ? and t.type_id = 3) or (t.user_id = ? and t.type_id = 1)"
+        );
+        break;
+      case "income":
+        sqlQuery.push(
+          "WHERE (t.receiver = ? and t.type_id = 1) or (t.user_id = ? and t.type_id = 2 )"
+        );
 
-        const countSql =
-          "SELECT count(t.id) AS total FROM transactions t where t.user_id = ?";
-        db.query(countSql, [userId], (countErr, countResults) => {
-          if (countErr) return reject(countErr);
-          total = countResults[0].total;
-          return resolve({ data: results, total });
-        });
-      }
-    );
+        break;
+      default:
+        sqlQuery.push("WHERE t.user_id = ? or t.receiver = ? ");
+        break;
+    }
+
+    sqlQuery.push("ORDER BY t.created_at desc LIMIT ? OFFSET ?");
+    values.push(limit, offset);
+
+    db.query(sqlQuery.join(" "), values, (error, results) => {
+      if (error) return reject(error);
+
+      const countSql =
+        "SELECT count(t.id) AS total FROM transactions t where t.user_id = ?";
+      db.query(countSql, [userId], (countErr, countResults) => {
+        if (countErr) return reject(countErr);
+        total = countResults[0].total;
+        return resolve({ data: results, total });
+      });
+    });
   });
 };
 

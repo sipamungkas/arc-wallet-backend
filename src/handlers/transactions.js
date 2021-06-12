@@ -158,19 +158,21 @@ exports.transactionDetail = async (req, res) => {
 exports.allTransaction = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
-    const { page, limit } = req.query;
+    const { page, limit, filter } = req.query;
     const { baseUrl, path } = req;
     const pageNumber = Number(page) || 1;
     const limitPerPage = Number(limit) || 3;
     const offset = (pageNumber - 1) * limitPerPage;
+    let formattedFilter = filter ? filter : "all";
 
     const transactions = await transaction.getAllTransaction(
       userId,
-
       limitPerPage,
-      offset
+      offset,
+      formattedFilter
     );
 
+    console.log(formattedFilter);
     const totalPage = Math.ceil(transactions.total / limitPerPage);
     const info = {
       total: transactions.total,
