@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const auth = require("../models/auth");
 const bcrypt = require("bcrypt");
+const client = require("../database/dbRedis");
 // const crypto = require("crypto");
 
 const {
@@ -228,6 +229,22 @@ exports.otpVerification = async (req, res) => {
     return sendResponse(res, true, 200, "OTP Verification success");
   } catch (error) {
     console.error(error);
+    return sendError(res, 500, error);
+  }
+};
+exports.logout = async (req, res) => {
+  try {
+    const { user, token } = req;
+    const duration = Math.ceil(
+      (new Date(user.exp * 1000) - new Date(Date.now())) / 1000
+    );
+    client.setex(`blacklist:${token}`, duration, true, (err) => {
+      if (err) {
+        return sendError(res, 500, err);
+      }
+      return sendResponse(res, true, 200, "Logout succes");
+    });
+  } catch (error) {
     return sendError(res, 500, error);
   }
 };

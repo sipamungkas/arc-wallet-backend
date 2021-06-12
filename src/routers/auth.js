@@ -4,6 +4,7 @@ const router = express.Router();
 
 const validator = require("../validators/auth");
 const validate = require("../validators/validate");
+const { authenticateToken } = require("../middlewares/authentication");
 
 router.post("/login", validator.loginRules(), validate, auth.login);
 router.post("/register", validator.registerRules(), validate, auth.register);
@@ -21,5 +22,6 @@ router.post(
   validate,
   auth.otpVerification
 );
+router.delete("/logout", authenticateToken, auth.logout);
 
 module.exports = router;
