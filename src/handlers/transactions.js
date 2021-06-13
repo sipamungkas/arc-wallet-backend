@@ -5,6 +5,7 @@ const {
 } = require("../helpers/response");
 const transaction = require("../models/transaction");
 const bcrypt = require("bcrypt");
+const { isDate, sub, endOfDay, endOfHour, format } = require("date-fns");
 
 exports.getReceiver = async (req, res) => {
   try {
@@ -158,21 +159,30 @@ exports.transactionDetail = async (req, res) => {
 exports.allTransaction = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
-    const { page, limit, filter } = req.query;
+    const { page, limit, filter, start, end } = req.query;
     const { baseUrl, path } = req;
     const pageNumber = Number(page) || 1;
     const limitPerPage = Number(limit) || 3;
     const offset = (pageNumber - 1) * limitPerPage;
     let formattedFilter = filter ? filter : "all";
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const formattedStartDate = isDate(startDate)
+      ? format(startDate, "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd");
+    const formattedEndDate = isDate(endDate)
+      ? format(endDate, "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd");
 
     const transactions = await transaction.getAllTransaction(
       userId,
       limitPerPage,
       offset,
-      formattedFilter
+      formattedFilter,
+      `${formattedStartDate} 23:59:59`,
+      `${formattedEndDate} 23:59:59`
     );
 
-    console.log(formattedFilter);
     const totalPage = Math.ceil(transactions.total / limitPerPage);
     const info = {
       total: transactions.total,
