@@ -19,13 +19,19 @@ exports.receiverList = (userId, search, limit, offset) => {
       (error, results) => {
         if (error) return reject(error);
 
-        const countSql =
-          "SELECT count(u.id) AS total FROM users u where u.id != ?";
-        db.query(countSql, [userId], (countErr, countResults) => {
-          if (countErr) return reject(countErr);
-          total = countResults[0].total;
-          return resolve({ data: results, total });
-        });
+        const countSql = [
+          "SELECT count(u.id) AS total FROM users u",
+          "WHERE u.id != ? and (u.first_name like ? or u.last_name like ?)",
+        ];
+        db.query(
+          countSql.join(" "),
+          [userId, search, search],
+          (countErr, countResults) => {
+            if (countErr) return reject(countErr);
+            total = countResults[0].total;
+            return resolve({ data: results, total });
+          }
+        );
       }
     );
   });
