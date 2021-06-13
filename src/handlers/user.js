@@ -28,6 +28,87 @@ exports.getUser = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+exports.getPhoneNumber = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+
+    const contactsRes = await userModel.getPhoneNumber(userId);
+    return sendResponse(
+      res,
+      true,
+      200,
+      "get phone numbers success",
+      contactsRes
+    );
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
+exports.addPhoneNumber = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { phone_number: phoneNumber } = req.body;
+    const user = await userModel.getUser(userId);
+    if (!user) {
+      return sendResponse(res, false, 404, "User not found");
+    }
+    if (user.phoneNumber === phoneNumber) {
+      return sendResponse(res, false, 200, "Phone number has already taken");
+    }
+    let isNumber = true;
+    if (!user.phone_number) {
+      isNumber = false;
+    }
+    const isUpdated = await userModel.addPhoneNumber(
+      userId,
+      phoneNumber,
+      isNumber
+    );
+    if (isUpdated) return sendResponse(res, true, 200, "profile update");
+    return sendResponse(res, false, 200, "Failed to update profile");
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
+exports.deletePhoneNumber = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { idContact } = req.params;
+    const user = await userModel.getUser(userId);
+    if (!user) {
+      return sendResponse(res, false, 404, "User not found");
+    }
+    const isUpdated = await userModel.deletePhoneNumber(idContact);
+    if (isUpdated) return sendResponse(res, true, 200, "phone number deleted");
+    return sendResponse(res, false, 200, "Failed to update profile");
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
+exports.updatePhoneNumber = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const { phone_number: phoneNumber } = req.body;
+    const { idContact } = req.params;
+    const user = await userModel.getUser(userId);
+    if (!user) {
+      return sendResponse(res, false, 404, "User not found");
+    }
+    const isUpdated = await userModel.updatePhoneNumber(
+      userId,
+      idContact,
+      phoneNumber
+    );
+    if (isUpdated) return sendResponse(res, true, 200, "phone number deleted");
+    return sendResponse(res, false, 200, "Failed to update profile");
+  } catch (error) {
+    console.log(error);
+    return sendError(res, 500, error);
+  }
+};
 exports.updateUser = async (req, res) => {
   try {
     const { user_id: userId } = req.user;

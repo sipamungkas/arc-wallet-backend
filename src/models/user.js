@@ -19,18 +19,68 @@ exports.updateProfile = (userId, params) => {
     });
   });
 };
-exports.changePrimaryPhoneNumber = (userId, params) => {
+exports.getPhoneNumber = (userId) => {
+  return new Promise((resolve, reject) => {
+    const getUserQuery =
+      "Select id,phone_number,primary from contacts where user_id= ?";
+    db.query(getUserQuery, [userId], function (error, results) {
+      if (error) return reject(error);
+      return resolve(results[0]);
+    });
+  });
+};
+exports.addPhoneNumber = (userId, params, number) => {
   return new Promise((resolve, reject) => {
     if (params.phone_number) {
-      const sqlQuery =
-        "UPDATE contacts SET primary = 1 WHERE user_id = ? and phone_number = ?";
-      db.query(sqlQuery, [userId, params.phone_number], (error, results) => {
+      let sqlQuery =
+        "INSERT INTO table_name (user_id,phone_number,primary) VALUES (?, ?, 0)";
+      if (!number) {
+        sqlQuery =
+          "INSERT INTO table_name (user_id,phone_number,primary) VALUES (?, ?, 1)";
+      }
+      db.query(sqlQuery, [userId, params], (error, results) => {
         if (error) return reject(error);
         if (results.affectedRows > 0) return resolve(true);
         return resolve(false);
       });
     } else {
       return resolve(false);
+    }
+  });
+};
+exports.deletePhoneNumber = (params) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "DELETE FROM contacts WHERE id = ?";
+    db.query(sqlQuery, [params], (error, results) => {
+      if (error) return reject(error);
+      if (results.affectedRows > 0) return resolve(true);
+      return resolve(false);
+    });
+  });
+};
+exports.updatePhoneNumber = (idUser, params, phoneNumber) => {
+  return new Promise((resolve, reject) => {
+    if (phoneNumber) {
+      const sqlQuery = "UPDATE contacts SET phone_number = ? WHERE id = ?";
+      db.query(sqlQuery, [phoneNumber, params], (error, results) => {
+        if (error) return reject(error);
+        if (results.affectedRows > 0) return resolve(true);
+        return resolve(false);
+      });
+    } else {
+      const sqlQuery = "UPDATE contacts SET primary = 1 WHERE id = ?";
+      db.query(
+        "UPDATE contacts SET primary = 0 WHERE user_id = ? and primary is TRUE",
+        idUser,
+        (error) => {
+          if (error) return reject(error);
+        }
+      );
+      db.query(sqlQuery, [params], (error, results) => {
+        if (error) return reject(error);
+        if (results.affectedRows > 0) return resolve(true);
+        return resolve(false);
+      });
     }
   });
 };
