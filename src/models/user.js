@@ -25,7 +25,7 @@ exports.updateProfile = (userId, params) => {
 exports.getPhoneNumber = (userId) => {
   return new Promise((resolve, reject) => {
     const getUserQuery =
-      "Select id,phone_number,primary from contacts where user_id = ?";
+      "Select id,phone_number,`primary` from contacts where user_id = ?";
     db.query(getUserQuery, [userId], function (error, results) {
       if (error) return reject(error);
       return resolve(results[0]);
@@ -70,6 +70,7 @@ exports.updatePhoneNumber = (idUser, params, phoneNumber) => {
     if (phoneNumber) {
       const sqlQuery = "UPDATE contacts SET phone_number = ? WHERE id = ?";
       db.query(sqlQuery, [phoneNumber, params], (error, results) => {
+        console.log(phoneNumber, params);
         if (error) return reject(error);
         if (results.affectedRows > 0) return resolve(true);
         return resolve(false);

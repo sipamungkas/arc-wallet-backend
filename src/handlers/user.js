@@ -28,6 +28,7 @@ exports.getUser = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.getPhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -45,6 +46,7 @@ exports.getPhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.addPhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -78,6 +80,7 @@ exports.addPhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.deletePhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -94,6 +97,7 @@ exports.deletePhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.updatePhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -108,7 +112,7 @@ exports.updatePhoneNumber = async (req, res) => {
       idContact,
       phoneNumber
     );
-    if (isUpdated) return sendResponse(res, true, 200, "phone number deleted");
+    if (isUpdated) return sendResponse(res, true, 200, "Phone number updated");
     return sendResponse(res, false, 200, "Failed to update profile");
   } catch (error) {
     console.log(error);
