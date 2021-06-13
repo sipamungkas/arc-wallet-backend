@@ -6,7 +6,7 @@ const fs = require("fs-extra");
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (!fs.existsSync("./public/images/avatars")) {
-      fs.mkdirSync("./public/images/avatars");
+      fs.mkdirSync("./public/images/avatars", { recursive: true });
     }
     cb(null, "./public/images/avatars");
   },
