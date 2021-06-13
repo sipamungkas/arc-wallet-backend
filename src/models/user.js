@@ -1,4 +1,6 @@
 const db = require("../database/dbMySql");
+const mysql = require("mysql");
+
 exports.getUser = (userId) => {
   return new Promise((resolve, reject) => {
     const getUserQuery =
@@ -19,26 +21,29 @@ exports.updateProfile = (userId, params) => {
     });
   });
 };
+
 exports.getPhoneNumber = (userId) => {
   return new Promise((resolve, reject) => {
     const getUserQuery =
-      "Select id,phone_number,primary from contacts where user_id= ?";
+      "Select id,phone_number,`primary` from contacts where user_id = ?";
     db.query(getUserQuery, [userId], function (error, results) {
       if (error) return reject(error);
       return resolve(results[0]);
     });
   });
 };
+
 exports.addPhoneNumber = (userId, params, number) => {
   return new Promise((resolve, reject) => {
-    if (params.phone_number) {
+    if (params) {
       let sqlQuery =
-        "INSERT INTO table_name (user_id,phone_number,primary) VALUES (?, ?, 0)";
+        "INSERT INTO contacts (user_id,phone_number,`primary`) VALUES (?, ?, 0)";
       if (!number) {
         sqlQuery =
-          "INSERT INTO table_name (user_id,phone_number,primary) VALUES (?, ?, 1)";
+          "INSERT INTO contacts (user_id,phone_number,`primary`) VALUES (?, ?, 1)";
       }
       db.query(sqlQuery, [userId, params], (error, results) => {
+        console.log(error, results);
         if (error) return reject(error);
         if (results.affectedRows > 0) return resolve(true);
         return resolve(false);
@@ -48,6 +53,7 @@ exports.addPhoneNumber = (userId, params, number) => {
     }
   });
 };
+
 exports.deletePhoneNumber = (params) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = "DELETE FROM contacts WHERE id = ?";
@@ -58,19 +64,21 @@ exports.deletePhoneNumber = (params) => {
     });
   });
 };
+
 exports.updatePhoneNumber = (idUser, params, phoneNumber) => {
   return new Promise((resolve, reject) => {
     if (phoneNumber) {
       const sqlQuery = "UPDATE contacts SET phone_number = ? WHERE id = ?";
       db.query(sqlQuery, [phoneNumber, params], (error, results) => {
+        console.log(phoneNumber, params);
         if (error) return reject(error);
         if (results.affectedRows > 0) return resolve(true);
         return resolve(false);
       });
     } else {
-      const sqlQuery = "UPDATE contacts SET primary = 1 WHERE id = ?";
+      const sqlQuery = "UPDATE contacts SET `primary` = 1 WHERE id = ?";
       db.query(
-        "UPDATE contacts SET primary = 0 WHERE user_id = ? and primary is TRUE",
+        "UPDATE contacts SET `primary` = 0 WHERE user_id = ? and `primary` is TRUE",
         idUser,
         (error) => {
           if (error) return reject(error);
@@ -82,5 +90,16 @@ exports.updatePhoneNumber = (idUser, params, phoneNumber) => {
         return resolve(false);
       });
     }
+  });
+};
+
+exports.phoneNumberExists = (userId, phoneNumber) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "SELECT id FROM contacts WHERE user_id = ? and phone_number = ?";
+    db.query(sqlQuery, [userId, phoneNumber], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
   });
 };

@@ -4,8 +4,10 @@ const {
   sendResponse,
 } = require("../helpers/response");
 const transaction = require("../models/transaction");
+const user = require("../models/user");
 const bcrypt = require("bcrypt");
-const { isDate, sub, endOfDay, endOfHour, format } = require("date-fns");
+const { isDate, format } = require("date-fns");
+const { sendNotification } = require("../services/socket");
 
 exports.getReceiver = async (req, res) => {
   try {
@@ -66,6 +68,7 @@ exports.getReceiver = async (req, res) => {
 exports.createTransaction = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
+
     const { amount, type_id: typeId, receiver, notes, pin } = req.body;
 
     switch (typeId) {
@@ -73,6 +76,8 @@ exports.createTransaction = async (req, res) => {
         const isUserExists = await transaction.checkUserId(receiver);
         if (!isUserExists || isUserExists.length < 1)
           return sendResponse(res, false, 404, "Invalid User");
+
+        const sender = await user.getUser(userId);
 
         const data = await transaction.checkPin(userId);
 
@@ -92,6 +97,12 @@ exports.createTransaction = async (req, res) => {
           return sendResponse(res, false, 500, "Internal Server Error");
         }
         if (transfer.affectedRows > 0) {
+          const content = {
+            title: "New Transfer!",
+            content: `${sender.first_name} has transferred money to you`,
+          };
+
+          sendNotification(`notification:${receiver}`, content);
           return sendResponse(res, true, 200, "Transfer Success");
         }
         return sendResponse(res, false, 400, "Transfer Success Failed");
@@ -102,6 +113,12 @@ exports.createTransaction = async (req, res) => {
           return sendResponse(res, false, 500, "Internal Server Error");
         }
         if (topUp.affectedRows > 0) {
+          const content = {
+            title: "Top Up Success!",
+            content: `Top Up ${amount} success`,
+          };
+
+          sendNotification(`notification:${receiver}`, content);
           return sendResponse(res, true, 200, "Top Up Success");
         }
         return sendResponse(res, false, 400, "Top Up Failed");
@@ -132,6 +149,12 @@ exports.subcription = async (req, res) => {
       return sendResponse(res, false, 500, "Internal Server Error");
     }
     if (subcription.affectedRows > 0) {
+      const content = {
+        title: "Subcription",
+        content: `Ypur ${notes}(${amount}) subcription has been paid`,
+      };
+
+      sendNotification(`notification:${userId}`, content);
       return sendResponse(res, true, 200, "Subcription Success");
     }
     return sendResponse(res, false, 400, "Subcription Success Failed");

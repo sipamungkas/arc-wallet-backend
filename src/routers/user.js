@@ -11,15 +11,15 @@ router.patch(
   errorMulterHandler(uploadAvatar.single("image")),
   user.updateUser
 );
-router.get("/phoneNumber", authenticateToken, user.getPhoneNumber);
-router.post("/phoneNumber", authenticateToken, user.addPhoneNumber);
+router.get("/phone-number", authenticateToken, user.getPhoneNumber);
+router.post("/phone-number", authenticateToken, user.addPhoneNumber);
 router.patch(
-  "/phoneNumber/:idContact",
+  "/phone-number/:idContact",
   authenticateToken,
   user.updatePhoneNumber
 );
 router.delete(
-  "/phoneNumber/:idContact",
+  "/phone-number/:idContact",
   authenticateToken,
   user.deletePhoneNumber
 );

@@ -21,6 +21,6 @@ router.get("/", (req, res) => {
 
 router.use("/auth", authRouters);
 router.use("/transactions", transactionRouters);
-router.use("/user", userRouters);
+router.use("/users", userRouters);
 
 module.exports = router;

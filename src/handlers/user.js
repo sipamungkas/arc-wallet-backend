@@ -22,12 +22,14 @@ exports.getUser = async (req, res) => {
       email: user.username,
       avatar: user.avatar,
       balance: user.balance,
+      phone_number: user.phone_number,
     });
   } catch (error) {
     console.log(error);
     return sendError(res, 500, error);
   }
 };
+
 exports.getPhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -45,26 +47,33 @@ exports.getPhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.addPhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
     const { phone_number: phoneNumber } = req.body;
-    const user = await userModel.getUser(userId);
-    if (!user) {
+    const isPhoneNumberExists = await userModel.phoneNumberExists(
+      userId,
+      phoneNumber
+    );
+    if (!isPhoneNumberExists) {
       return sendResponse(res, false, 404, "User not found");
     }
-    if (user.phoneNumber === phoneNumber) {
+
+    if (isPhoneNumberExists.length > 0) {
       return sendResponse(res, false, 200, "Phone number has already taken");
     }
     let isNumber = true;
-    if (!user.phone_number) {
+    if (!isPhoneNumberExists) {
       isNumber = false;
     }
+
     const isUpdated = await userModel.addPhoneNumber(
       userId,
       phoneNumber,
       isNumber
     );
+    console.log(isUpdated);
     if (isUpdated) return sendResponse(res, true, 200, "profile update");
     return sendResponse(res, false, 200, "Failed to update profile");
   } catch (error) {
@@ -72,6 +81,7 @@ exports.addPhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.deletePhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -88,6 +98,7 @@ exports.deletePhoneNumber = async (req, res) => {
     return sendError(res, 500, error);
   }
 };
+
 exports.updatePhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
@@ -102,7 +113,7 @@ exports.updatePhoneNumber = async (req, res) => {
       idContact,
       phoneNumber
     );
-    if (isUpdated) return sendResponse(res, true, 200, "phone number deleted");
+    if (isUpdated) return sendResponse(res, true, 200, "Phone number updated");
     return sendResponse(res, false, 200, "Failed to update profile");
   } catch (error) {
     console.log(error);
