@@ -49,22 +49,28 @@ exports.addPhoneNumber = async (req, res) => {
   try {
     const { user_id: userId } = req.user;
     const { phone_number: phoneNumber } = req.body;
-    const user = await userModel.getUser(userId);
-    if (!user) {
+    const isPhoneNumberExists = await userModel.phoneNumberExists(
+      userId,
+      phoneNumber
+    );
+    if (!isPhoneNumberExists) {
       return sendResponse(res, false, 404, "User not found");
     }
-    if (user.phoneNumber === phoneNumber) {
+
+    if (isPhoneNumberExists.length > 0) {
       return sendResponse(res, false, 200, "Phone number has already taken");
     }
     let isNumber = true;
-    if (!user.phone_number) {
+    if (!isPhoneNumberExists) {
       isNumber = false;
     }
+
     const isUpdated = await userModel.addPhoneNumber(
       userId,
       phoneNumber,
       isNumber
     );
+    console.log(isUpdated);
     if (isUpdated) return sendResponse(res, true, 200, "profile update");
     return sendResponse(res, false, 200, "Failed to update profile");
   } catch (error) {
