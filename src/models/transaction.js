@@ -324,14 +324,20 @@ exports.getTransactionById = (userId, transactionId) => {
   });
 };
 
-exports.getAllTransaction = (userId, limit, offset, filter) => {
-  console.log([userId, limit, offset, filter]);
+exports.getAllTransaction = (
+  userId,
+  limit,
+  offset,
+  filter,
+  startDate,
+  endDate
+) => {
   return new Promise((resolve, reject) => {
     let total = 0;
     const values = [userId, userId];
     const sqlQuery = [
-      "SELECT t.*, type.name as type, sender.username as sender,",
-      "receiver_data .username as receiver_name, (SELECT c.phone_number FROM contacts c",
+      "SELECT t.*, type.name as type, sender.username as sender, receiver_data.avatar as receiver_avatar,",
+      "receiver_data.username as receiver_name, (SELECT c.phone_number FROM contacts c",
       "where c.user_id = t.receiver and c.`primary` is TRUE ) as phone_number ",
       "FROM transactions t LEFT JOIN types as type on type.id = t.type_id",
       "LEFT JOIN users as sender on sender.id = t.user_id",
@@ -354,6 +360,9 @@ exports.getAllTransaction = (userId, limit, offset, filter) => {
         sqlQuery.push("WHERE t.user_id = ? or t.receiver = ? ");
         break;
     }
+
+    sqlQuery.push("And t.created_at BETWEEN ? and ?");
+    values.push(startDate, endDate);
 
     sqlQuery.push("ORDER BY t.created_at desc LIMIT ? OFFSET ?");
     values.push(limit, offset);

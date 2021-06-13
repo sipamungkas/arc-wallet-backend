@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, query } = require("express-validator");
 
 exports.createTransaction = () => [
   body("amount")
@@ -37,3 +37,5 @@ exports.createSubcription = () => [
       "Amazon Prime",
     ]),
 ];
+
+exports.allTransaction = () => [];
