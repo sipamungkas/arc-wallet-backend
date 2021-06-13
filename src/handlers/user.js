@@ -97,7 +97,11 @@ exports.updatePhoneNumber = async (req, res) => {
     if (!user) {
       return sendResponse(res, false, 404, "User not found");
     }
-    const isUpdated = await userModel.updatePhoneNumber(idContact, phoneNumber);
+    const isUpdated = await userModel.updatePhoneNumber(
+      userId,
+      idContact,
+      phoneNumber
+    );
     if (isUpdated) return sendResponse(res, true, 200, "phone number deleted");
     return sendResponse(res, false, 200, "Failed to update profile");
   } catch (error) {

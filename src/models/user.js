@@ -58,7 +58,7 @@ exports.deletePhoneNumber = (params) => {
     });
   });
 };
-exports.updatePhoneNumber = (params, phoneNumber) => {
+exports.updatePhoneNumber = (idUser, params, phoneNumber) => {
   return new Promise((resolve, reject) => {
     if (phoneNumber) {
       const sqlQuery = "UPDATE contacts SET phone_number = ? WHERE id = ?";
@@ -69,6 +69,13 @@ exports.updatePhoneNumber = (params, phoneNumber) => {
       });
     } else {
       const sqlQuery = "UPDATE contacts SET primary = 1 WHERE id = ?";
+      db.query(
+        "UPDATE contacts SET primary = 0 WHERE user_id = ? and primary is TRUE",
+        idUser,
+        (error) => {
+          if (error) return reject(error);
+        }
+      );
       db.query(sqlQuery, [params], (error, results) => {
         if (error) return reject(error);
         if (results.affectedRows > 0) return resolve(true);
