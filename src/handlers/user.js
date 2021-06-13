@@ -22,6 +22,7 @@ exports.getUser = async (req, res) => {
       email: user.username,
       avatar: user.avatar,
       balance: user.balance,
+      phone_number: user.phone_number,
     });
   } catch (error) {
     console.log(error);
