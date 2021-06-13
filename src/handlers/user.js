@@ -19,7 +19,7 @@ exports.getUser = async (req, res) => {
       username: user.username,
       first_name: user.first_name,
       last_name: user.last_name,
-      email: user.username,
+      email: user.email,
       avatar: user.avatar,
       balance: user.balance,
       phone_number: user.phone_number,
