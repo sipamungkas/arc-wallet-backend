@@ -107,12 +107,12 @@ exports.createTransaction = async (req, res) => {
 
           sendNotification(`notification:${receiver}`, "notification", content);
           sendNotification(
-            `notification:${receiver}`,
+            `notification:${userId}`,
             "new-balance",
             senderAmount[0].balance
           );
           sendNotification(
-            `notification:${userId}`,
+            `notification:${receiver}`,
             "new-balance",
             receiverAmount[0].balance
           );
