@@ -257,10 +257,12 @@ exports.charts = async (req, res) => {
     );
 
     const income = incomeData.map((data) => {
-      return { amount: data.amount, day: format(data.created_at, "E") };
+      return { amount: data.amount, day: data.created_at };
+      // return { amount: data.amount, day: format(data.created_at, "E") };
     });
     const expense = expenseData.map((data) => {
-      return { amount: data.amount, day: format(data.created_at, "E") };
+      // return { amount: data.amount, day: format(data.created_at, "E") };
+      return { amount: data.amount, day: data.created_at };
     });
 
     return sendResponse(res, true, 200, "Charts in a week", {
