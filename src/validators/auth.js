@@ -26,7 +26,12 @@ exports.registerRules = () => [
   body("password")
     .isLength({ min: 8 })
     .withMessage("Minimum password length is 8"),
-  body("pin").isLength({ max: 6, min: 6 }).withMessage("Invalid Pin"),
+  body("pin")
+    .isNumeric()
+    .withMessage("Invalid Pin")
+    .bail()
+    .isLength({ max: 6, min: 6 })
+    .withMessage("Invalid Pin"),
 ];
 
 exports.newPassword = () => [
@@ -39,6 +44,11 @@ exports.newPassword = () => [
     .bail(),
   body("otp")
     .isString()
+    .withMessage("Invalid OTP")
+    .bail()
+    .isAlphanumeric()
+    .withMessage("Invalid OTP")
+    .bail()
     .isLength({ min: 6, max: 6 })
     .withMessage("Invalid OTP"),
   body("password")
@@ -66,6 +76,11 @@ exports.otpVerification = () => [
     .bail(),
   body("otp")
     .isString()
+    .withMessage("Invalid OTP")
+    .bail()
+    .isAlphanumeric()
+    .withMessage("Invalid OTP")
+    .bail()
     .isLength({ min: 6, max: 6 })
     .withMessage("Invalid OTP"),
 ];
