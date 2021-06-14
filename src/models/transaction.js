@@ -407,3 +407,34 @@ exports.getCharts = (userId, start, end) => {
     });
   });
 };
+
+exports.getAllNotifications = (userId, limit, offset) => {
+  return new Promise((resolve, reject) => {
+    let total = 0;
+    const sqlQuery = [
+      "SELECT t.*, sender.username as sender, receiver_data.avatar as receiver_avatar,",
+      "CONCAT(receiver_data.first_name,' ', receiver_data.last_name)  as receiver_name",
+      "FROM transactions t",
+      "LEFT JOIN users as sender on sender.id = t.user_id",
+      "LEFT join users as receiver_data on receiver_data.id = t.receiver",
+      "WHERE t.user_id = ? or t.receiver = ? ",
+      "ORDER BY t.created_at desc LIMIT ? OFFSET ?",
+    ];
+
+    db.query(
+      sqlQuery.join(" "),
+      [userId, userId, limit, offset],
+      (error, results) => {
+        if (error) return reject(error);
+
+        const countSql =
+          "SELECT count(t.id) AS total FROM transactions t where t.user_id = ? or t.receiver = ?";
+        db.query(countSql, [userId, userId], (countErr, countResults) => {
+          if (countErr) return reject(countErr);
+          total = countResults[0].total;
+          return resolve({ data: results, total });
+        });
+      }
+    );
+  });
+};
