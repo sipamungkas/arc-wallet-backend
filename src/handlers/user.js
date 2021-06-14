@@ -175,7 +175,7 @@ exports.updateUser = async (req, res) => {
     }
     if (newPin) {
       if (newPin.length < 3) {
-        return sendResponse(res, false, 422, "invalid pin");
+        return sendResponse(res, false, 401, "invalid pin");
       }
       data.pin = await bcrypt.hash(newPin, saltRounds);
     }
