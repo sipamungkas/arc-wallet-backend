@@ -1,5 +1,4 @@
 const db = require("../database/dbMySql");
-const mysql = require("mysql");
 
 exports.getUser = (userId) => {
   return new Promise((resolve, reject) => {
@@ -33,12 +32,12 @@ exports.getPhoneNumber = (userId) => {
   });
 };
 
-exports.addPhoneNumber = (userId, params, number) => {
+exports.addPhoneNumber = (userId, params, primary) => {
   return new Promise((resolve, reject) => {
     if (params) {
       let sqlQuery =
         "INSERT INTO contacts (user_id,phone_number,`primary`) VALUES (?, ?, 0)";
-      if (!number) {
+      if (!primary) {
         sqlQuery =
           "INSERT INTO contacts (user_id,phone_number,`primary`) VALUES (?, ?, 1)";
       }
@@ -100,6 +99,17 @@ exports.phoneNumberExists = (userId, phoneNumber) => {
     db.query(sqlQuery, [userId, phoneNumber], (error, results) => {
       if (error) return reject(error);
       return resolve(results);
+    });
+  });
+};
+
+exports.phoneNumberCount = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "SELECT count(id) as total FROM contacts WHERE user_id = ?";
+    db.query(sqlQuery, userId, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results[0]);
     });
   });
 };
