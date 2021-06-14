@@ -396,3 +396,14 @@ exports.checkPin = (userId) => {
     });
   });
 };
+
+exports.getCharts = (userId, start, end) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "SELECT * from transactions t WHERE t.user_id = ? and t.created_at BETWEEN ? and ?";
+    db.query(sqlQuery, [userId, start, end], (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};

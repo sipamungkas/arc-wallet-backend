@@ -6,7 +6,7 @@ const {
 const transaction = require("../models/transaction");
 const user = require("../models/user");
 const bcrypt = require("bcrypt");
-const { isDate, format } = require("date-fns");
+const { isDate, format, sub } = require("date-fns");
 const { sendNotification } = require("../services/socket");
 
 exports.getReceiver = async (req, res) => {
@@ -202,7 +202,7 @@ exports.allTransaction = async (req, res) => {
       limitPerPage,
       offset,
       formattedFilter,
-      `${formattedStartDate} 23:59:59`,
+      `${formattedStartDate} 00:00:01`,
       `${formattedEndDate} 23:59:59`
     );
 
@@ -232,5 +232,45 @@ exports.allTransaction = async (req, res) => {
   } catch (error) {
     console.error(error);
     return sendError(res, 500, error);
+  }
+};
+
+exports.charts = async (req, res) => {
+  try {
+    const { user_id: userId } = req.user;
+    const end = new Date();
+    const start = sub(end, { days: 7 });
+    const formattedStart = `${format(start, "yyyy-MM-dd")} 00:00:01`;
+    const formattedEnd = `${format(end, "yyyy-MM-dd")} 23:59:59`;
+
+    const data = await transaction.getCharts(
+      userId,
+      formattedStart,
+      formattedEnd
+    );
+
+    const incomeData = data.filter(
+      (t) => (t.type_id === 1 && t.receiver == userId) || t.type_id === 2
+    );
+    const expenseData = data.filter(
+      (t) => (t.type_id === 1 && t.receiver != userId) || t.type_id === 3
+    );
+
+    const income = incomeData.map((data) => {
+      return { amount: data.amount, day: data.created_at };
+      // return { amount: data.amount, day: format(data.created_at, "E") };
+    });
+    const expense = expenseData.map((data) => {
+      // return { amount: data.amount, day: format(data.created_at, "E") };
+      return { amount: data.amount, day: data.created_at };
+    });
+
+    return sendResponse(res, true, 200, "Charts in a week", {
+      expense,
+      income,
+    });
+  } catch (error) {
+    console.log(error);
+    sendError(res, 500, error);
   }
 };

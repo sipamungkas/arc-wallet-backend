@@ -28,6 +28,7 @@ router.get(
   validator.allTransaction(),
   transaction.allTransaction
 );
+router.get("/charts", authenticateToken, transaction.charts);
 router.get("/:transactionId", authenticateToken, transaction.transactionDetail);
 
 module.exports = router;
