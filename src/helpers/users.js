@@ -6,6 +6,7 @@ const formatUserAuthentication = (user, token) => {
     username,
     avatar,
     phone_number: phoneNumber,
+    balance,
   } = user;
   return {
     avatar,
@@ -14,6 +15,7 @@ const formatUserAuthentication = (user, token) => {
     first_name: firstName,
     last_name: lastName,
     phone_number: phoneNumber,
+    balance,
     token,
   };
 };
