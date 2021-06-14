@@ -103,7 +103,6 @@ exports.createTransaction = async (req, res) => {
           };
           const senderAmount = await transaction.getBalance(userId);
           const receiverAmount = await transaction.getBalance(receiver);
-          console.log(senderAmount[0].balance, receiverAmount[0].balance);
 
           sendNotification(`notification:${receiver}`, "notification", content);
           sendNotification(
@@ -303,12 +302,22 @@ exports.topUp = async (req, res) => {
       return sendResponse(res, false, 500, "Internal Server Error");
     }
     if (topUp.affectedRows > 0) {
+      const currentBalance = await transaction.getBalance(user[0].user_id);
       const content = {
         title: "Top Up Success!",
         content: `Top Up ${amount} success`,
       };
+      sendNotification(
+        `notification:${user[0].user_id}`,
+        "notification",
+        content
+      );
+      sendNotification(
+        `notification:${user[0].user_id}`,
+        "new-balance",
+        currentBalance[0].balance
+      );
 
-      sendNotification(`notification:${user[0].user_id}`, content);
       return sendResponse(res, true, 200, "Top Up Success");
     }
     return sendResponse(res, false, 400, "Top Up Failed");
