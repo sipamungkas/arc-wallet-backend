@@ -27,7 +27,7 @@ exports.getPhoneNumber = (userId) => {
       "Select id,phone_number,`primary` from contacts where user_id = ?";
     db.query(getUserQuery, [userId], function (error, results) {
       if (error) return reject(error);
-      return resolve(results[0]);
+      return resolve(results);
     });
   });
 };
