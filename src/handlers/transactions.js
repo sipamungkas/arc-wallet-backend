@@ -288,3 +288,32 @@ exports.charts = async (req, res) => {
     sendError(res, 500, error);
   }
 };
+
+exports.topUp = async (req, res) => {
+  try {
+    const { amount, va } = req.body;
+    const phoneNumber = va.slice(3);
+    const user = await transaction.getUserId(phoneNumber);
+    if (!user || user.length === 0) {
+      return sendResponse(res, false, 404, "Virtual Account Not found");
+    }
+    console.log(user);
+    const topUp = await transaction.createTopUp(user[0].user_id, amount);
+    if (!topUp) {
+      return sendResponse(res, false, 500, "Internal Server Error");
+    }
+    if (topUp.affectedRows > 0) {
+      const content = {
+        title: "Top Up Success!",
+        content: `Top Up ${amount} success`,
+      };
+
+      sendNotification(`notification:${user[0].user_id}`, content);
+      return sendResponse(res, true, 200, "Top Up Success");
+    }
+    return sendResponse(res, false, 400, "Top Up Failed");
+  } catch (error) {
+    console.warn(error);
+    return sendError(res, 500, error);
+  }
+};

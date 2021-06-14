@@ -449,3 +449,14 @@ exports.getBalance = (userId) => {
     });
   });
 };
+
+exports.getUserId = (phone) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery =
+      "SELECT c.user_id FROM contacts c where c.phone_number = ?";
+    db.query(sqlQuery, phone, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};

@@ -29,6 +29,7 @@ router.get(
   transaction.allTransaction
 );
 router.get("/charts", authenticateToken, transaction.charts);
+router.post("/top-up", transaction.topUp);
 router.get("/:transactionId", authenticateToken, transaction.transactionDetail);
 
 module.exports = router;
