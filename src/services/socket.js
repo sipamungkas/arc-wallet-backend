@@ -29,8 +29,8 @@ exports.socketConnection = (server, options) => {
 exports.sendMessage = (roomId, key, message) =>
   io.to(roomId).emit(key, message);
 
-exports.sendNotification = (roomId, content) => {
-  io.to(roomId).emit("notification", content);
+exports.sendNotification = (roomId, type, content) => {
+  io.to(roomId).emit(type, content);
 };
 
 exports.sendMsgNotification = (roomId, content) => {

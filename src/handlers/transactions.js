@@ -101,8 +101,22 @@ exports.createTransaction = async (req, res) => {
             title: "New Transfer!",
             content: `${sender.first_name} has transferred ${amount} to you`,
           };
+          const senderAmount = await transaction.getBalance(userId);
+          const receiverAmount = await transaction.getBalance(receiver);
+          console.log(senderAmount[0].balance, receiverAmount[0].balance);
 
-          sendNotification(`notification:${receiver}`, content);
+          sendNotification(`notification:${receiver}`, "notification", content);
+          sendNotification(
+            `notification:${receiver}`,
+            "new-balance",
+            senderAmount[0].balance
+          );
+          sendNotification(
+            `notification:${userId}`,
+            "new-balance",
+            receiverAmount[0].balance
+          );
+
           return sendResponse(res, true, 200, "Transfer Success");
         }
         return sendResponse(res, false, 400, "Transfer Success Failed");

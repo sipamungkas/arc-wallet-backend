@@ -438,3 +438,13 @@ exports.getAllNotifications = (userId, limit, offset) => {
     );
   });
 };
+
+exports.getBalance = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = "SELECT u.balance FROM users u WHERE u.id = ? ";
+    db.query(sqlQuery, userId, (error, results) => {
+      if (error) return reject(error);
+      return resolve(results);
+    });
+  });
+};
