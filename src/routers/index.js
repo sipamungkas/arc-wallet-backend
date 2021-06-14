@@ -4,6 +4,7 @@ const router = express.Router();
 const authRouters = require("./auth");
 const userRouters = require("./user");
 const transactionRouters = require("./transactions");
+const notificationRouters = require("./notifications");
 
 router.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -22,5 +23,6 @@ router.get("/", (req, res) => {
 router.use("/auth", authRouters);
 router.use("/transactions", transactionRouters);
 router.use("/users", userRouters);
+router.use("/notifications", notificationRouters);
 
 module.exports = router;
