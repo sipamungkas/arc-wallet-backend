@@ -343,7 +343,7 @@ exports.getAllTransaction = (
     const values = [userId, userId];
     const sqlQuery = [
       "SELECT t.*, type.name as type, ",
-      "CONCAT(receiver_data.first_name,' ', receiver_data.last_name) as sender_name,",
+      "CONCAT(sender.first_name,' ', sender.last_name) as sender_name,",
       "sender.avatar as sender_avatar,",
       "receiver_data.avatar as receiver_avatar,",
       "CONCAT(receiver_data.first_name,' ', receiver_data.last_name)  as receiver_name",
