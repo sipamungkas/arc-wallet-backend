@@ -99,7 +99,7 @@ exports.createTransaction = async (req, res) => {
         if (transfer.affectedRows > 0) {
           const content = {
             title: "New Transfer!",
-            content: `${sender.first_name} has transferred money to you`,
+            content: `${sender.first_name} has transferred ${amount} to you`,
           };
 
           sendNotification(`notification:${receiver}`, content);

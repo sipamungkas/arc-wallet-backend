@@ -7,6 +7,12 @@ exports.createTransaction = () => [
     .bail(),
   body("type_id").isNumeric().isIn([1, 2]).withMessage("Invalid Type Id"),
   body("notes").optional().isString().withMessage("Notes must be a string"),
+  body("pin")
+    .isNumeric()
+    .withMessage("Invalid Pin")
+    .bail()
+    .isLength({ max: 6, min: 6 })
+    .withMessage("Invalid Pin"),
 ];
 
 exports.createSubcription = () => [
