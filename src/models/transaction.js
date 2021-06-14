@@ -342,9 +342,11 @@ exports.getAllTransaction = (
     let total = 0;
     const values = [userId, userId];
     const sqlQuery = [
-      "SELECT t.*, type.name as type, sender.username as sender, receiver_data.avatar as receiver_avatar,",
-      "receiver_data.username as receiver_name, (SELECT c.phone_number FROM contacts c",
-      "where c.user_id = t.receiver and c.`primary` is TRUE ) as phone_number ",
+      "SELECT t.*, type.name as type, ",
+      "CONCAT(receiver_data.first_name,' ', receiver_data.last_name) as sender_name,",
+      "sender.avatar as sender_avatar,",
+      "receiver_data.avatar as receiver_avatar,",
+      "CONCAT(receiver_data.first_name,' ', receiver_data.last_name)  as receiver_name",
       "FROM transactions t LEFT JOIN types as type on type.id = t.type_id",
       "LEFT JOIN users as sender on sender.id = t.user_id",
       "LEFT join users as receiver_data on receiver_data.id = t.receiver",
@@ -360,7 +362,6 @@ exports.getAllTransaction = (
         sqlQuery.push(
           "WHERE (t.receiver = ? and t.type_id = 1) or (t.user_id = ? and t.type_id = 2 )"
         );
-
         break;
       default:
         sqlQuery.push("WHERE t.user_id = ? or t.receiver = ? ");
