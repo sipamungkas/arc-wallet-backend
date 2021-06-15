@@ -401,8 +401,8 @@ exports.checkPin = (userId) => {
 exports.getCharts = (userId, start, end) => {
   return new Promise((resolve, reject) => {
     const sqlQuery =
-      "SELECT * from transactions t WHERE t.user_id = ? and t.created_at BETWEEN ? and ? ORDER BY t.created_at DESC";
-    db.query(sqlQuery, [userId, start, end], (error, results) => {
+      "SELECT * from transactions t WHERE (t.user_id = ? or t.receiver = ?) and t.created_at BETWEEN ? and ? ORDER BY t.created_at DESC";
+    db.query(sqlQuery, [userId, userId, start, end], (error, results) => {
       if (error) return reject(error);
       return resolve(results);
     });
