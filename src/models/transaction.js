@@ -364,7 +364,7 @@ exports.getAllTransaction = (
         );
         break;
       default:
-        sqlQuery.push("WHERE t.user_id = ? or t.receiver = ? ");
+        sqlQuery.push("WHERE (t.user_id = ? or t.receiver = ?)");
         break;
     }
 
@@ -373,7 +373,7 @@ exports.getAllTransaction = (
 
     sqlQuery.push("ORDER BY t.created_at desc LIMIT ? OFFSET ?");
     values.push(limit, offset);
-
+    console.log(sqlQuery.join(" "));
     db.query(sqlQuery.join(" "), values, (error, results) => {
       if (error) return reject(error);
 
