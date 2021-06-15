@@ -52,7 +52,7 @@
 ## ERD
 
 ARC WALLET ERD
---coming soon--
+![ARC WALLET ERD](docs/arc-wallet-erd-3.png)
 
 ## Installation
 
