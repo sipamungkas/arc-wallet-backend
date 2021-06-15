@@ -291,7 +291,7 @@ exports.charts = async (req, res) => {
 exports.topUp = async (req, res) => {
   try {
     const { amount, va } = req.body;
-    const phoneNumber = va.slice(3);
+    const phoneNumber = va.slice(4);
     const user = await transaction.getUserId(phoneNumber);
     if (!user || user.length === 0) {
       return sendResponse(res, false, 404, "Virtual Account Not found");
